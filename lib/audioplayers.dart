@@ -66,26 +66,20 @@ enum PlayerMode {
 /// It holds methods to play, loop, pause, stop, seek the audio, and some useful
 /// hooks for handlers and callbacks.
 class AudioPlayer {
-  static final MethodChannel _channel =
-      const MethodChannel('xyz.luan/audioplayers')
-        ..setMethodCallHandler(platformCallHandler);
+  static final MethodChannel _channel = const MethodChannel('xyz.luan/audioplayers')
+    ..setMethodCallHandler(platformCallHandler);
 
   static final _uuid = Uuid();
 
-  final StreamController<AudioPlayerState> _playerStateController =
-      StreamController<AudioPlayerState>.broadcast();
+  final StreamController<AudioPlayerState> _playerStateController = StreamController<AudioPlayerState>.broadcast();
 
-  final StreamController<Duration> _positionController =
-      StreamController<Duration>.broadcast();
+  final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
 
-  final StreamController<Duration> _durationController =
-      StreamController<Duration>.broadcast();
+  final StreamController<Duration> _durationController = StreamController<Duration>.broadcast();
 
-  final StreamController<void> _completionController =
-      StreamController<void>.broadcast();
+  final StreamController<void> _completionController = StreamController<void>.broadcast();
 
-  final StreamController<String> _errorController =
-      StreamController<String>.broadcast();
+  final StreamController<String> _errorController = StreamController<String>.broadcast();
 
   /// Reference [Map] with all the players created by the application.
   ///
@@ -101,15 +95,16 @@ class AudioPlayer {
   AudioPlayerState get state => _audioPlayerState;
 
   set state(AudioPlayerState state) {
-    _playerStateController.add(state);
-    // ignore: deprecated_member_use_from_same_package
-    audioPlayerStateChangeHandler?.call(state);
-    _audioPlayerState = state;
+    if (_playerStateController.isClosed == false) {
+      _playerStateController.add(state);
+      // ignore: deprecated_member_use_from_same_package
+      audioPlayerStateChangeHandler?.call(state);
+      _audioPlayerState = state;
+    }
   }
 
   /// Stream of changes on player state.
-  Stream<AudioPlayerState> get onPlayerStateChanged =>
-      _playerStateController.stream;
+  Stream<AudioPlayerState> get onPlayerStateChanged => _playerStateController.stream;
 
   /// Stream of changes on audio position.
   ///
@@ -207,9 +202,7 @@ class AudioPlayer {
       ..['playerId'] = playerId
       ..['mode'] = mode.toString();
 
-    return _channel
-        .invokeMethod(method, withPlayerId)
-        .then((result) => (result as int));
+    return _channel.invokeMethod(method, withPlayerId).then((result) => (result as int));
   }
 
   /// Plays an audio.
@@ -439,12 +432,10 @@ class AudioPlayer {
   Future<void> dispose() async {
     List<Future> futures = [];
 
-    if (!_playerStateController.isClosed)
-      futures.add(_playerStateController.close());
+    if (!_playerStateController.isClosed) futures.add(_playerStateController.close());
     if (!_positionController.isClosed) futures.add(_positionController.close());
     if (!_durationController.isClosed) futures.add(_durationController.close());
-    if (!_completionController.isClosed)
-      futures.add(_completionController.close());
+    if (!_completionController.isClosed) futures.add(_completionController.close());
     if (!_errorController.isClosed) futures.add(_errorController.close());
 
     await Future.wait(futures);
