@@ -388,6 +388,7 @@ class AudioPlayer {
     final playerId = callArgs['playerId'] as String;
     final AudioPlayer player = players[playerId];
     final value = callArgs['value'];
+    if(player == null) return;
 
     switch (call.method) {
       case 'audio.onDuration':
