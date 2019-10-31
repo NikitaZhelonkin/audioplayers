@@ -145,8 +145,10 @@ public class WrappedMediaPlayer extends Player implements MediaPlayer.OnPrepared
         if (releaseMode != ReleaseMode.RELEASE) {
             if (this.playing) {
                 this.playing = false;
-                this.player.pause();
-                this.player.seekTo(0);
+                if (this.prepared) {
+                    this.player.pause();
+                    this.player.seekTo(0);
+                }
             }
         } else {
             this.release();
